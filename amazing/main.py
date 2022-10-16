@@ -12,10 +12,14 @@ load_dotenv()
 API_BASE = "https://serv.amazingmarvin.com/api"
 
 
+def date_to_timestamp(date: datetime.datetime) -> int:
+    timestamp = time.mktime(date.timetuple()) * 1000
+    return int(timestamp)
+
+
 def today_timestamp() -> int:
     now = datetime.datetime.now()
-    timestamp = time.mktime(now.timetuple()) * 1000
-    return int(timestamp)
+    return date_to_timestamp(now)
 
 
 def timestamp_to_date(timestamp: int) -> datetime.datetime:
@@ -130,3 +134,22 @@ class AmazingCloudAntClient:
         # Print
         for r in result:
             print(",".join([str(r[0]), str(r[1]), str(r[2])]))
+
+    def get_tasks_added_removed_between(self, start=None, end=None):
+        """Find the tasks between two given dates to compare created v. completed for the period."""
+        result = {}
+
+        if not start:
+            start = datetime.datetime.combine(datetime.datetime.now(), datetime.time.min)
+        if not end:
+            end = start + datetime.timedelta(days=1)
+
+        start_ts = date_to_timestamp(start)
+        end_ts = date_to_timestamp(end)
+
+        all_tasks = self.get_all_tasks()
+
+        result["created"] = [t for t in all_tasks if start_ts < t["doc"]["createdAt"] < end_ts]
+        result["completed"] = [t for t in all_tasks if start_ts < t["doc"].get("doneAt", 0) < end_ts]
+
+        return result
