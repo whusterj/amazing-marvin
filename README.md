@@ -1,13 +1,14 @@
 # Amazing Marvin API Scripts
 
-My personal scripts for the Amazing Marvin task management system. Will use the Marvin API or direct access to the CloudAnt CouchDB instance as necessary.
+My personal scripts for the Amazing Marvin task management system. Will use the [Marvin API](https://github.com/amazingmarvin/MarvinAPI/wiki/Marvin-API) or [direct access to the CloudAnt CouchDB](https://github.com/amazingmarvin/MarvinAPI/wiki/Database-Access) instance as necessary.
 
 - API access with [httpx](https://github.com/projectdiscovery/httpx)
-- DB access with [cloudant-python-sdk](https://github.com/IBM/cloudant-python-sdk)
+- DB access with [cloudant-python-sdk](https://github.com/IBM/cloudant-python-sdk) ([docs](https://ibm.github.io/cloudant-python-sdk/docs/latest/))
 
 ## TODOS
 
-- Visualize task throughput - tasks created v. finished over time
+- Visualize task throughput with plotting lib or export to GSheets, etc.
+- [DONE] Compute task throughput - tasks created v. finished over time
 
 ## SETUP
 
