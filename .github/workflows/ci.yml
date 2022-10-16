@@ -1,0 +1,53 @@
+name: CI
+
+# Enable Buildkit and let compose use it to speed up image building
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on: push
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    env:
+      CLOUDANT_AUTH_TYPE: "BASIC"
+      CLOUDANT_URL: ${{ secrets.CLOUDANT_URL }}
+      CLOUDANT_SYNC_DB: ${{ secrets.CLOUDANT_SYNC_DB}}
+      CLOUDANT_USERNAME: ${{ secrets.CLOUDANT_USERNAME }}
+      CLOUDANT_PASSWORD: ${{ secrets.CLOUDANT_PASSWORD }}
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      FULL_ACCESS_TOKEN: ${{ secrets.FULL_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Get pip cache dir
+        id: pip-cache-location
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
+
+      - name: Cache pip Project Dependencies
+        uses: actions/cache@v2
+        with:
+          # Get the location of pip cache dir
+          path: ${{ steps.pip-cache-location.outputs.dir }}
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/local.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install -r requirements.txt
+
+      - name: Test with pytest
+        run: |
+          pytest -v
