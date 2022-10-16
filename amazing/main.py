@@ -1,11 +1,17 @@
-import httpx
+import os
 
-FULL_ACCESS_TOKEN = "V36m2PzxFwvS+P1VPdpbMm5MI4U="
+import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_BASE = "https://serv.amazingmarvin.com/api"
 
 
-def test_api():
+async def api_test_endpoint():
+    """Test the Amazing Marvin API credentials."""
     endpoint = f"{API_BASE}/test"
-    r = httpx.post(endpoint, headers={"X-API-Token": FULL_ACCESS_TOKEN})
-    return r
+    return httpx.post(
+        endpoint,
+        headers={"X-Full-Access-Token": os.environ.get("FULL_ACCESS_TOKEN")},
+    )
