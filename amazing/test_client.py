@@ -1,5 +1,3 @@
-import os
-
 from amazing.main import AmazingCloudAntClient, api_test_endpoint
 
 
