@@ -20,7 +20,7 @@ def test_cloudant_get_db_info():
 
 def test_cloudant_get_all_tasks():
     client = AmazingCloudAntClient()
-    tasks = client.get_all_tasks()
+    tasks = client._get_all_tasks()
     assert len(tasks) > 1500
 
 

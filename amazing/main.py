@@ -12,10 +12,14 @@ load_dotenv()
 API_BASE = "https://serv.amazingmarvin.com/api"
 
 
+def date_to_timestamp(date: datetime.datetime) -> int:
+    timestamp = time.mktime(date.timetuple()) * 1000
+    return int(timestamp)
+
+
 def today_timestamp() -> int:
     now = datetime.datetime.now()
-    timestamp = time.mktime(now.timetuple()) * 1000
-    return int(timestamp)
+    return date_to_timestamp(now)
 
 
 def timestamp_to_date(timestamp: int) -> datetime.datetime:
@@ -36,6 +40,30 @@ async def api_test_endpoint():
     )
 
 
+class Task:
+    """TODO: Convert to a dataclass"""
+
+    def __init__(self, data):
+        self.data = data
+
+    @property
+    def title(self):
+        return self.data["doc"]["title"]
+
+    @property
+    def done(self):
+        return self.data["doc"].get("done", False)
+
+    @property
+    def cycle_time(self):
+        """Compute the cycle time in days.
+
+        Cycle time is the difference between when a task was created and when it was finished.
+        """
+        t = self.data
+        return (t["doc"]["doneAt"] - t["doc"]["createdAt"]) / (24 * 60 * 60 * 1000)
+
+
 class AmazingCloudAntClient:
     @property
     def client(self):
@@ -54,7 +82,7 @@ class AmazingCloudAntClient:
     def get_db_info(self):
         return self.client.get_database_information(db=self.db_name).get_result()
 
-    def get_all_tasks(self):
+    def _get_all_tasks(self):
         """Retrieve all Task-type documents from the DB.
 
         See: https://github.com/IBM/cloudant-python-sdk/blob/main/ibmcloudant/cloudant_v1.py#L1163
@@ -64,8 +92,11 @@ class AmazingCloudAntClient:
         all_tasks = [r for r in response["rows"] if r["doc"]["db"] == type]
         return all_tasks
 
+    def get_all_tasks(self):
+        return [Task(t) for t in self._get_all_tasks()]
+
     def get_task_stats(self):
-        all_tasks = self.get_all_tasks()
+        all_tasks = self._get_all_tasks()
         result = {"cumulative_flow": {}}
 
         # Sort tasks by `createdAt`
@@ -130,3 +161,22 @@ class AmazingCloudAntClient:
         # Print
         for r in result:
             print(",".join([str(r[0]), str(r[1]), str(r[2])]))
+
+    def get_tasks_added_removed_between(self, start=None, end=None):
+        """Find the tasks between two given dates to compare created v. completed for the period."""
+        result = {}
+
+        if not start:
+            start = datetime.datetime.combine(datetime.datetime.now(), datetime.time.min)
+        if not end:
+            end = start + datetime.timedelta(days=1)
+
+        start_ts = date_to_timestamp(start)
+        end_ts = date_to_timestamp(end)
+
+        all_tasks = self._get_all_tasks()
+
+        result["created"] = [t for t in all_tasks if start_ts < t["doc"]["createdAt"] < end_ts]
+        result["completed"] = [t for t in all_tasks if start_ts < t["doc"].get("doneAt", 0) < end_ts]
+
+        return result
