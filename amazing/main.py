@@ -55,6 +55,10 @@ class Task:
         return self.data["doc"].get("done", False)
 
     @property
+    def is_starred(self):
+        return self.data["doc"].get("isStarred", 0)
+
+    @property
     def cycle_time(self):
         """Compute the cycle time in days.
 
