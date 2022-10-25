@@ -110,12 +110,17 @@ class AmazingCloudAntClient:
         diff_in_days = math.floor(diff / (24 * 60 * 60 * 1000))
 
         # Iterate over those tasks and filter out completed tasks
-        # Count cumulative incomplete and complete on that day
+        # Count total complete and incomplete tasks as of that day
         for i in range(diff_in_days):
             day_stamp = first_task_date + (i * 24 * 60 * 60 * 1000)
             result["cumulative_flow"][day_stamp] = {
                 "cumulative_incomplete": len(
-                    [t for t in all_tasks_sorted if t["doc"]["createdAt"] <= day_stamp and not t["doc"].get("done")]
+                    [
+                        t
+                        for t in all_tasks_sorted
+                        if t["doc"]["createdAt"] <= day_stamp
+                        and (not t["doc"].get("done") or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp))
+                    ]
                 ),
                 "cumulative_complete": len(
                     [
