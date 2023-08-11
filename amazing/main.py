@@ -93,7 +93,7 @@ class AmazingCloudAntClient:
         """
         type = "Tasks"
         response = self.client.post_all_docs(db=self.db_name, include_docs=True).get_result()
-        all_tasks = [r for r in response["rows"] if r["doc"]["db"] == type]
+        all_tasks = [r for r in response["rows"] if r["doc"].get("db") is not None and r["doc"].get("db") == type]
         return all_tasks
 
     def get_all_tasks(self):
