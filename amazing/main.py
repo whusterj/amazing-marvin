@@ -55,6 +55,10 @@ class Task:
         return self.data["doc"].get("done", False)
 
     @property
+    def is_starred(self):
+        return self.data["doc"].get("isStarred", 0)
+
+    @property
     def cycle_time(self):
         """Compute the cycle time in days.
 
@@ -89,49 +93,57 @@ class AmazingCloudAntClient:
         """
         type = "Tasks"
         response = self.client.post_all_docs(db=self.db_name, include_docs=True).get_result()
-        all_tasks = [r for r in response["rows"] if r["doc"]["db"] == type]
+        all_tasks = [r for r in response["rows"] if r["doc"].get("db") is not None and r["doc"].get("db") == type]
         return all_tasks
 
     def get_all_tasks(self):
         return [Task(t) for t in self._get_all_tasks()]
 
-    def get_task_stats(self):
+    def get_task_stats(self, since: int = None):
         all_tasks = self._get_all_tasks()
         result = {"cumulative_flow": {}}
 
+        # Filter tasks by `since` date
+        tasks = all_tasks if since is None else [t for t in all_tasks if t["doc"]["createdAt"] >= since]
+
         # Sort tasks by `createdAt`
-        all_tasks_sorted = sorted(all_tasks, key=lambda t: t["doc"]["createdAt"])
+        tasks_sorted = sorted(tasks, key=lambda t: t["doc"]["createdAt"])
 
         # Starting with first task date, iterate by date and find all tasks created
         # (on or) before that day.
-        first_task_date = all_tasks_sorted[0]["doc"]["createdAt"]
+        first_task_date = tasks_sorted[0]["doc"]["createdAt"]
         today_date = today_timestamp()
         diff = today_date - first_task_date
         diff_in_days = math.floor(diff / (24 * 60 * 60 * 1000))
 
         # Iterate over those tasks and filter out completed tasks
-        # Count cumulative incomplete and complete on that day
+        # Count total complete and incomplete tasks as of that day
         for i in range(diff_in_days):
             day_stamp = first_task_date + (i * 24 * 60 * 60 * 1000)
             result["cumulative_flow"][day_stamp] = {
                 "cumulative_incomplete": len(
-                    [t for t in all_tasks_sorted if t["doc"]["createdAt"] <= day_stamp and not t["doc"].get("done")]
+                    [
+                        t
+                        for t in tasks_sorted
+                        if t["doc"]["createdAt"] <= day_stamp
+                        and (not t["doc"].get("done") or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp))
+                    ]
                 ),
                 "cumulative_complete": len(
                     [
                         t
-                        for t in all_tasks_sorted
+                        for t in tasks_sorted
                         if t["doc"]["createdAt"] <= day_stamp and t["doc"].get("done") and t["doc"].get("doneAt") <= day_stamp
                     ]
                 ),
             }
 
-        result["avg_daily_throughput"] = len([t for t in all_tasks_sorted if t["doc"].get("done")]) / diff_in_days
-        result["avg_daily_backlog"] = len([t for t in all_tasks_sorted if not t["doc"].get("done")]) / diff_in_days
+        result["avg_daily_throughput"] = len([t for t in tasks_sorted if t["doc"].get("done")]) / diff_in_days
+        result["avg_daily_backlog"] = len([t for t in tasks_sorted if not t["doc"].get("done")]) / diff_in_days
 
         return result
 
-    def get_task_stats_for_chart(self):
+    def get_task_stats_for_chart(self, since: int = None):
         # matplotlib expects a list (series) of data for each: x, y1, y2
         result = {
             "dates": [],
@@ -139,7 +151,7 @@ class AmazingCloudAntClient:
             "complete": [],
         }
 
-        task_stats = self.get_task_stats()
+        task_stats = self.get_task_stats(since)
         for key, val in task_stats["cumulative_flow"].items():
             result["dates"].append(timestamp_to_date(key))
             result["incomplete"].append(val["cumulative_incomplete"])
