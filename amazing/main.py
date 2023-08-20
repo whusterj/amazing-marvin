@@ -126,7 +126,10 @@ class AmazingCloudAntClient:
                         t
                         for t in tasks_sorted
                         if t["doc"]["createdAt"] <= day_stamp
-                        and (not t["doc"].get("done") or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp))
+                        and (
+                            (not t["doc"].get("done") and not (t["doc"].get("done") is False and t["doc"].get("recurring") is True))
+                            or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp)
+                        )
                     ]
                 ),
                 "cumulative_complete": len(
