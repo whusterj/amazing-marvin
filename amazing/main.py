@@ -126,7 +126,10 @@ class AmazingCloudAntClient:
                         t
                         for t in tasks_sorted
                         if t["doc"]["createdAt"] <= day_stamp
-                        and (not t["doc"].get("done") or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp))
+                        and (
+                            (not t["doc"].get("done") and not (t["doc"].get("done") is False and t["doc"].get("recurring") is True))
+                            or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp)
+                        )
                     ]
                 ),
                 "cumulative_complete": len(
@@ -136,6 +139,14 @@ class AmazingCloudAntClient:
                         if t["doc"]["createdAt"] <= day_stamp and t["doc"].get("done") and t["doc"].get("doneAt") <= day_stamp
                     ]
                 ),
+                "avg_daily_complete": len(
+                    [
+                        t
+                        for t in tasks_sorted
+                        if t["doc"]["createdAt"] <= day_stamp and t["doc"].get("done") and t["doc"].get("doneAt") <= day_stamp
+                    ]
+                )
+                / (i + 1),
             }
 
         result["avg_daily_throughput"] = len([t for t in tasks_sorted if t["doc"].get("done")]) / diff_in_days
@@ -149,6 +160,7 @@ class AmazingCloudAntClient:
             "dates": [],
             "incomplete": [],
             "complete": [],
+            "avg_daily_complete": [],
         }
 
         task_stats = self.get_task_stats(since)
@@ -156,6 +168,7 @@ class AmazingCloudAntClient:
             result["dates"].append(timestamp_to_date(key))
             result["incomplete"].append(val["cumulative_incomplete"])
             result["complete"].append(val["cumulative_complete"])
+            result["avg_daily_complete"].append(val["avg_daily_complete"])
 
         return result
 
