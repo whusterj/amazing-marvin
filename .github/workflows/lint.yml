@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Manual checkout (no Node.js required!)
         run: |
+          git config --global --add safe.directory /__w/amazing-marvin/amazing-marvin
           git clone \
             https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} .
           git checkout ${{ github.sha }}
