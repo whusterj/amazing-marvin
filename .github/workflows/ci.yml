@@ -27,6 +27,6 @@ jobs:
 
       - name: Install devenv and run tests
         run: |
-          nix profile install nixpkgs#devenv
+          nix --extra-experimental-features 'nix-command flakes' profile add nixpkgs#devenv
           devenv shell test
         timeout-minutes: 10
