@@ -5,7 +5,6 @@ on: push
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    container: nixos/nix:latest
 
     env:
       CLOUDANT_AUTH_TYPE: "BASIC"
@@ -17,16 +16,21 @@ jobs:
       FULL_ACCESS_TOKEN: ${{ secrets.FULL_ACCESS_TOKEN }}
 
     steps:
-      - name: Manual checkout (no Node.js required!)
-        run: |
-          git config --global --add safe.directory /__w/amazing-marvin/amazing-marvin
-          git clone \
-            https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} .
-          git checkout ${{ github.sha }}
-          echo "📁 Checked out ${{ github.sha }} manually (screw you, Node.js!)"
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            download-buffer-size = 134217728
+            http-connections = 25
+            max-substitution-jobs = 8
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: devenv
 
       - name: Install devenv and run tests
         run: |
-          nix --extra-experimental-features 'nix-command flakes' profile add nixpkgs#devenv
+          nix profile install nixpkgs#devenv
           devenv shell test
         timeout-minutes: 10
