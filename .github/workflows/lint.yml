@@ -17,7 +17,7 @@ jobs:
 
       - name: Install devenv and check code
         run: |
-          nix profile install nixpkgs#devenv
+          nix --extra-experimental-features 'nix-command flakes' profile add nixpkgs#devenv
           devenv shell format-check
           devenv shell lint
         timeout-minutes: 10
