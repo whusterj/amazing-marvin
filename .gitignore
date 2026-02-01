@@ -1,3 +1,18 @@
-.*
+# Environment and secrets
+.env
+
+# OS files
+.DS_Store
+
+# Development environment
 .devenv/
+.devenv.flake.nix
+.data/
+.pre-commit-config.yaml
+
+# Python
 __pycache__/
+*.pyc
+.mypy_cache/
+
+# IDEs (keep .vscode/ tracked for project config)

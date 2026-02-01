@@ -1,10 +1,5 @@
 name: CI
 
-# Enable Buildkit and let compose use it to speed up image building
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
-
 on: push
 
 jobs:
@@ -22,32 +17,18 @@ jobs:
 
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v16
         with:
-          python-version: 3.9
+          name: devenv
 
-      - name: Get pip cache dir
-        id: pip-cache-location
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
 
-      - name: Cache pip Project Dependencies
-        uses: actions/cache@v2
-        with:
-          # Get the location of pip cache dir
-          path: ${{ steps.pip-cache-location.outputs.dir }}
-          # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/local.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install -r requirements.txt
-
-      - name: Test with pytest
-        run: |
-          pytest -v
+      - name: Run tests
+        run: devenv shell test
