@@ -5,7 +5,6 @@ on: push
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    container: nixos/nix:latest
 
     env:
       CLOUDANT_AUTH_TYPE: "BASIC"
@@ -20,9 +19,14 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v5
 
-      - name: Install devenv
-        run: nix profile install nixpkgs#devenv
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Run tests
-        run: devenv shell test
+      - name: Setup Nix Cache  
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Install and run with devenv
+        run: |
+          nix profile install nixpkgs#devenv
+          devenv shell test
         timeout-minutes: 10
