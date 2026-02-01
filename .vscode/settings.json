@@ -1,5 +1,11 @@
 {
-  "python.testing.pytestArgs": ["."],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  // Use devenv Python interpreter (correct path)
+  "python.defaultInterpreterPath": "${workspaceFolder}/.devenv/state/venv/bin/python",
+  "python.terminal.activateEnvironment": false,
+  
+  // Basic formatting
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "black-formatter.args": ["--line-length", "140"]
 }
