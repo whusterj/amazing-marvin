@@ -49,6 +49,7 @@
   scripts = {
     test.exec = "pytest";
     format.exec = "black amazing/ && isort amazing/";
+    format-check.exec = "black --check amazing/ && isort --check amazing/";
     lint.exec = "flake8 amazing/";
     notebook.exec = "jupyter notebook";
   };
