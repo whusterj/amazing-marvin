@@ -5,6 +5,7 @@ on: push
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    container: nixos/nix:latest
 
     env:
       CLOUDANT_AUTH_TYPE: "BASIC"
@@ -16,16 +17,14 @@ jobs:
       FULL_ACCESS_TOKEN: ${{ secrets.FULL_ACCESS_TOKEN }}
 
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v5
+      - name: Manual checkout (no Node.js required!)
+        run: |
+          git clone \
+            https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} .
+          git checkout ${{ github.sha }}
+          echo "📁 Checked out ${{ github.sha }} manually (screw you, Node.js!)"
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Nix Cache  
-        uses: DeterminateSystems/magic-nix-cache-action@main
-
-      - name: Install and run with devenv
+      - name: Install devenv and run tests
         run: |
           nix profile install nixpkgs#devenv
           devenv shell test

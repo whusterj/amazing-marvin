@@ -5,15 +5,14 @@ on: push
 jobs:
   lint:
     runs-on: ubuntu-latest
+    container: nixos/nix:latest
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v5
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Manual checkout (no Node.js required!)
+        run: |
+          git clone \
+            https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} .
+          git checkout ${{ github.sha }}
+          echo "📁 Checked out ${{ github.sha }} manually (screw you, Node.js!)"
 
       - name: Install devenv and check code
         run: |
