@@ -9,10 +9,8 @@ These are ad hoc tools for reviewing tasks in [Amazing Marvin](https://amazingma
 This folder is where task-review tooling for this repository lives. Use `weekly_review.py` for a review over a date window, and add a new script here rather than in the repository root. Import shared helpers from `agent_scripts._client`. Run every script as a module from the repository root, so that `amazing` resolves:
 
 ```bash
-python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
+uv run python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
 ```
-
-Prefix that with `uv run` once the project uses uv.
 
 ## The scripts
 

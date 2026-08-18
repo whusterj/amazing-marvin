@@ -35,6 +35,10 @@ def main() -> None:
     slip_from = args.slip_from or args.start
 
     tasks = get_client().get_all_tasks()
+    # Every recurring task is left out, not only the ones with no completion time.
+    # A review asks what work is outstanding, and a repeating chore is not a
+    # backlog item. amazing.main.is_ghost_recurring() draws the narrower line the
+    # cumulative chart needs, which is a different question.
     open_tasks = [t for t in tasks if not t.done and not t.data["doc"].get("recurring", False)]
 
     if args.match:

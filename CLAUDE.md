@@ -12,7 +12,7 @@ Use `agent_scripts/weekly_review.py` for a review over a date window. Put a new 
 Run a script as a module from the repository root, so that `amazing` resolves:
 
 ```bash
-python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
+uv run python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
 ```
 
 ## Checks
@@ -20,9 +20,7 @@ python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
 CI runs black, flake8, isort, and mypy on every push, and pytest against the live API. Run them the same way before you push:
 
 ```bash
-black --check . && flake8 . && isort --check-only . && mypy
+uv run black --check . && uv run flake8 . && uv run isort --check-only . && uv run mypy
 ```
-
-Prefix each with `uv run` once the project uses uv.
 
 The five tests in `amazing/test_client.py` call the live Marvin API and Cloudant. They need credentials in `.env` and they will fail without them.
