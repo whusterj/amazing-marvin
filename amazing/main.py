@@ -2,6 +2,7 @@ import datetime
 import math
 import os
 import time
+from typing import Any
 
 import httpx
 from dotenv import load_dotenv
@@ -69,13 +70,17 @@ class Task:
         return self.data["doc"].get("isStarred", 0)
 
     @property
-    def cycle_time(self):
+    def cycle_time(self) -> float | None:
         """Compute the cycle time in days.
 
         Cycle time is the difference between when a task was created and when it was finished.
+        Returns None for a task that has no completion time.
         """
-        t = self.data
-        return (t["doc"]["doneAt"] - t["doc"]["createdAt"]) / (24 * 60 * 60 * 1000)
+        doc = self.data["doc"]
+        done_at = completed_at(doc)
+        if done_at is None:
+            return None
+        return (done_at - doc["createdAt"]) / (24 * 60 * 60 * 1000)
 
 
 class AmazingCloudAntClient:
@@ -109,9 +114,9 @@ class AmazingCloudAntClient:
     def get_all_tasks(self):
         return [Task(t) for t in self._get_all_tasks()]
 
-    def get_task_stats(self, since: int = None):
+    def get_task_stats(self, since: int | None = None):
         all_tasks = self._get_all_tasks()
-        result = {"cumulative_flow": {}}
+        result: dict[str, Any] = {"cumulative_flow": {}}
 
         # Filter tasks by `since` date
         tasks = all_tasks if since is None else [t for t in all_tasks if t["doc"]["createdAt"] >= since]
@@ -152,9 +157,9 @@ class AmazingCloudAntClient:
 
         return result
 
-    def get_task_stats_for_chart(self, since: int = None):
+    def get_task_stats_for_chart(self, since: int | None = None):
         # matplotlib expects a list (series) of data for each: x, y1, y2
-        result = {
+        result: dict[str, list] = {
             "dates": [],
             "incomplete": [],
             "complete": [],
