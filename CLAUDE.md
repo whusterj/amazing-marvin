@@ -7,13 +7,22 @@
 
 ## Task reviews
 
-Use `agent_scripts/weekly_review.py` for a review over a date window. Put a new review script in `agent_scripts/`, not in the repository root, and take shared helpers from `agent_scripts._common`.
+**Three scripts already cover this work. Reuse one before you write anything.** Run any of them with `--help` for its full options.
 
-Run a script as a module from the repository root, so that `amazing` resolves:
+| Need | Command |
+|---|---|
+| Review a date window | `uv run python -m agent_scripts.weekly_review --start YYYY-MM-DD --end YYYY-MM-DD` |
+| Narrow that review to a topic | add `--match word word` |
+| Widen the slip window or the forward plan | add `--slip-from YYYY-MM-DD` or `--plan-through YYYY-MM-DD` |
+| Confirm the credentials reach the database | `uv run python -m agent_scripts.check_connection` |
+| Learn whether a task field is always set | `uv run python -m agent_scripts.probe_schema --state done` |
 
-```bash
-uv run python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
-```
+Four rules:
+
+- Run every script as a module from the repository root, or `amazing` will not resolve.
+- Add an option to one of the three before you add a file. A new script needs a job none of them does.
+- Take the connection and the formatting from `agent_scripts._common`. Never rebuild the Cloudant client.
+- Do not write a tool to recover a deleted document. `agent_scripts/README.md` records why that cannot work.
 
 ## Checks
 

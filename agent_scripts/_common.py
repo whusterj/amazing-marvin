@@ -38,11 +38,6 @@ def get_client() -> EnvAuthClient:
     return EnvAuthClient(service)
 
 
-def get_service() -> CloudantV1:
-    """Build a bare CloudantV1 for scripts that query the database directly."""
-    return get_client().client
-
-
 def db_name() -> str:
     return os.environ["CLOUDANT_SYNC_DB"]
 
