@@ -12,7 +12,7 @@ My personal scripts for the Amazing Marvin task management system. Will use the 
 
 ## SETUP
 
-The scripts were developed using **Python 3.9.7**. The requirements may not work with other Python versions.
+The scripts run on **Python 3.12**. Older versions may not satisfy the requirements.
 
 Create a local virtual environment (venv):
 

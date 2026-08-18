@@ -1,10 +1,5 @@
 name: CI
 
-# Enable Buildkit and let compose use it to speed up image building
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
-
 on: push
 
 jobs:
@@ -22,32 +17,17 @@ jobs:
 
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
-
-      - name: Get pip cache dir
-        id: pip-cache-location
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
-
-      - name: Cache pip Project Dependencies
-        uses: actions/cache@v2
-        with:
-          # Get the location of pip cache dir
-          path: ${{ steps.pip-cache-location.outputs.dir }}
-          # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/local.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install Dependencies
-        run: |
-          python -m pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
 
       - name: Test with pytest
-        run: |
-          pytest -v
+        run: pytest -v

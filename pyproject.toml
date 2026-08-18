@@ -1,11 +1,18 @@
 [tool.black]
 line-length = 140
-target-version = ['py39']
+target-version = ['py312']
 
 [tool.isort]
-py_version = 39
+profile = "black"
 line_length = 140
-include_trailing_comma = true
-use_parentheses = true
-force_grid_wrap = 0
-multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.12"
+files = ["amazing"]
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# The cloudant SDK ships no py.typed marker, so mypy cannot read its types.
+module = "ibmcloudant.*"
+ignore_missing_imports = true
