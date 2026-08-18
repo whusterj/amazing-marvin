@@ -16,29 +16,30 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=25.1",
-    "flake8>=7.1",
-    "isort>=6.0",
     "mypy>=1.14",
     "pytest>=8.3",
     "pytest-asyncio>=0.25",
+    "ruff>=0.14",
 ]
 
 [tool.uv]
 # The scripts run from the repository root. Nothing here is built or published.
 package = false
 
-[tool.black]
+[tool.ruff]
 line-length = 140
-target-version = ['py312']
+target-version = "py312"
 
-[tool.isort]
-profile = "black"
-line_length = 140
+[tool.ruff.lint]
+# E and F are what flake8 checked here, and I is what isort did.
+select = ["E", "F", "I"]
 
 [tool.mypy]
 python_version = "3.12"
 files = ["amazing", "agent_scripts"]
+# Without this, mypy reads no unannotated function body, and misses what is in
+# them. It found a real fault in api_test_endpoint the moment it was switched on.
+check_untyped_defs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 

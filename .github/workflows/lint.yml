@@ -10,12 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: black
-            run: black --check .
-          - name: flake8
-            run: flake8 .
-          - name: isort
-            run: isort --check-only .
+          - name: ruff-format
+            run: ruff format --check .
+          - name: ruff-check
+            run: ruff check .
           - name: mypy
             run: mypy
     steps:

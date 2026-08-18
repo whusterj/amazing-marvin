@@ -1,9 +1,12 @@
 {
   "recommendations": [
     "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker"
+  ],
+  "unwantedRecommendations": [
     "ms-python.black-formatter",
     "ms-python.flake8",
-    "ms-python.isort",
-    "ms-python.mypy-type-checker"
+    "ms-python.isort"
   ]
 }
