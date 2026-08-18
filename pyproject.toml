@@ -37,6 +37,9 @@ select = ["E", "F", "I"]
 [tool.mypy]
 python_version = "3.12"
 files = ["amazing", "agent_scripts"]
+# Without this, mypy reads no unannotated function body, and misses what is in
+# them. It found a real fault in api_test_endpoint the moment it was switched on.
+check_untyped_defs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 

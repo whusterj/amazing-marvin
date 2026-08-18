@@ -82,12 +82,17 @@ def add_moving_average(cumulative_flow: dict, window_days: int) -> None:
         cumulative_flow[day_stamp]["moving_avg_daily_complete"] = inside_window / span
 
 
-async def api_test_endpoint():
-    """Test the Amazing Marvin API credentials."""
+async def api_test_endpoint() -> httpx.Response:
+    """Test the Amazing Marvin API credentials.
+
+    Raises KeyError when FULL_ACCESS_TOKEN is absent, which names the missing
+    variable. os.environ.get() returned None here, and a header value of None
+    is not a header at all.
+    """
     endpoint = f"{API_BASE}/test"
     return httpx.post(
         endpoint,
-        headers={"X-Full-Access-Token": os.environ.get("FULL_ACCESS_TOKEN")},
+        headers={"X-Full-Access-Token": os.environ["FULL_ACCESS_TOKEN"]},
     )
 
 
