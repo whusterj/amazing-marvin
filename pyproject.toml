@@ -38,11 +38,11 @@ line_length = 140
 
 [tool.mypy]
 python_version = "3.12"
-files = ["amazing"]
+files = ["amazing", "agent_scripts"]
 warn_redundant_casts = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 # The cloudant SDK ships no py.typed marker, so mypy cannot read its types.
-module = "ibmcloudant.*"
+module = ["ibmcloudant.*", "ibm_cloud_sdk_core.*"]
 ignore_missing_imports = true
