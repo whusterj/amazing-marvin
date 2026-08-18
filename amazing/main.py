@@ -31,6 +31,16 @@ def timestamp_to_datefmt(timestamp: int) -> str:
     return timestamp_to_date(timestamp).strftime(fmt_str)
 
 
+def completed_at(task_doc: dict) -> int | None:
+    """Return the timestamp when a task was completed, or None if it has none.
+
+    A task can carry done=True and still have no doneAt. Recurring tasks do this.
+    """
+    if not task_doc.get("done"):
+        return None
+    return task_doc.get("doneAt")
+
+
 async def api_test_endpoint():
     """Test the Amazing Marvin API credentials."""
     endpoint = f"{API_BASE}/test"
@@ -125,15 +135,14 @@ class AmazingCloudAntClient:
                     [
                         t
                         for t in tasks_sorted
-                        if t["doc"]["createdAt"] <= day_stamp
-                        and (not t["doc"].get("done") or (t["doc"].get("done") and t["doc"]["doneAt"] > day_stamp))
+                        if t["doc"]["createdAt"] <= day_stamp and (completed_at(t["doc"]) is None or completed_at(t["doc"]) > day_stamp)
                     ]
                 ),
                 "cumulative_complete": len(
                     [
                         t
                         for t in tasks_sorted
-                        if t["doc"]["createdAt"] <= day_stamp and t["doc"].get("done") and t["doc"].get("doneAt") <= day_stamp
+                        if t["doc"]["createdAt"] <= day_stamp and completed_at(t["doc"]) is not None and completed_at(t["doc"]) <= day_stamp
                     ]
                 ),
             }
