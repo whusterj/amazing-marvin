@@ -26,10 +26,12 @@ Four rules:
 
 ## Checks
 
-CI runs black, flake8, isort, and mypy on every push, and pytest against the live API. Run them the same way before you push:
+CI runs ruff and mypy on every push, and pytest against the live API. Run them the same way before you push:
 
 ```bash
-uv run black --check . && uv run flake8 . && uv run isort --check-only . && uv run mypy
+uv run ruff format --check . && uv run ruff check . && uv run mypy
 ```
+
+ruff reads `stats.ipynb` as well as the `.py` files, which black and flake8 did not.
 
 The five tests in `amazing/test_client.py` call the live Marvin API and Cloudant. They need credentials in `.env` and they will fail without them.
