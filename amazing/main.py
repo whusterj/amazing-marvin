@@ -42,6 +42,46 @@ def completed_at(task_doc: dict) -> int | None:
     return task_doc.get("doneAt")
 
 
+def is_ghost_recurring(task_doc: dict) -> bool:
+    """Say whether a document is a recurring template and not real open work.
+
+    Marvin keeps a recurring task in the database with no completion time. It
+    repeats, so it never leaves the backlog, and counting it hides the real
+    backlog trend.
+    """
+    return bool(task_doc.get("recurring")) and completed_at(task_doc) is None
+
+
+def is_complete_by(task_doc: dict, day_stamp: int) -> bool:
+    """Say whether a task was created and then completed on or before a day."""
+    done_at = completed_at(task_doc)
+    return task_doc["createdAt"] <= day_stamp and done_at is not None and done_at <= day_stamp
+
+
+def is_open_on(task_doc: dict, day_stamp: int) -> bool:
+    """Say whether a task was open on a day: created by then, and not yet done."""
+    if is_ghost_recurring(task_doc):
+        return False
+    done_at = completed_at(task_doc)
+    return task_doc["createdAt"] <= day_stamp and (done_at is None or done_at > day_stamp)
+
+
+def add_moving_average(cumulative_flow: dict, window_days: int) -> None:
+    """Add a trailing-window mean of daily completions to every day.
+
+    The value is the completions inside the last `window_days` days, over the
+    number of days the window covers. An early day covers fewer days than the
+    window, so it divides by what it covers.
+    """
+    days = list(cumulative_flow)
+    for index, day_stamp in enumerate(days):
+        earlier = index - window_days
+        completed_before = cumulative_flow[days[earlier]]["cumulative_complete"] if earlier >= 0 else 0
+        span = min(window_days, index + 1)
+        inside_window = cumulative_flow[day_stamp]["cumulative_complete"] - completed_before
+        cumulative_flow[day_stamp]["moving_avg_daily_complete"] = inside_window / span
+
+
 async def api_test_endpoint():
     """Test the Amazing Marvin API credentials."""
     endpoint = f"{API_BASE}/test"
@@ -114,7 +154,7 @@ class AmazingCloudAntClient:
     def get_all_tasks(self):
         return [Task(t) for t in self._get_all_tasks()]
 
-    def get_task_stats(self, since: int | None = None):
+    def get_task_stats(self, since: int | None = None, moving_average_days: int = 28):
         all_tasks = self._get_all_tasks()
         result: dict[str, Any] = {"cumulative_flow": {}}
 
@@ -135,53 +175,38 @@ class AmazingCloudAntClient:
         # Count total complete and incomplete tasks as of that day
         for i in range(diff_in_days):
             day_stamp = first_task_date + (i * 24 * 60 * 60 * 1000)
+            complete = len([t for t in tasks_sorted if is_complete_by(t["doc"], day_stamp)])
             result["cumulative_flow"][day_stamp] = {
-                "cumulative_incomplete": len(
-                    [
-                        t
-                        for t in tasks_sorted
-                        if t["doc"]["createdAt"] <= day_stamp
-                        and (completed_at(t["doc"]) is None or completed_at(t["doc"]) > day_stamp)
-                        and not (t["doc"].get("recurring") and completed_at(t["doc"]) is None)
-                    ]
-                ),
-                "cumulative_complete": len(
-                    [
-                        t
-                        for t in tasks_sorted
-                        if t["doc"]["createdAt"] <= day_stamp and completed_at(t["doc"]) is not None and completed_at(t["doc"]) <= day_stamp
-                    ]
-                ),
-                "avg_daily_complete": len(
-                    [
-                        t
-                        for t in tasks_sorted
-                        if t["doc"]["createdAt"] <= day_stamp and t["doc"].get("done") and t["doc"].get("doneAt") <= day_stamp
-                    ]
-                )
-                / (i + 1),
+                "cumulative_incomplete": len([t for t in tasks_sorted if is_open_on(t["doc"], day_stamp)]),
+                "cumulative_complete": complete,
+                # The mean across every day since the first task, so it flattens as history grows.
+                "avg_daily_complete_to_date": complete / (i + 1),
             }
+
+        add_moving_average(result["cumulative_flow"], moving_average_days)
 
         result["avg_daily_throughput"] = len([t for t in tasks_sorted if t["doc"].get("done")]) / diff_in_days
         result["avg_daily_backlog"] = len([t for t in tasks_sorted if not t["doc"].get("done")]) / diff_in_days
 
         return result
 
-    def get_task_stats_for_chart(self, since: int | None = None):
+    def get_task_stats_for_chart(self, since: int | None = None, moving_average_days: int = 28):
         # matplotlib expects a list (series) of data for each: x, y1, y2
         result: dict[str, list] = {
             "dates": [],
             "incomplete": [],
             "complete": [],
-            "avg_daily_complete": [],
+            "avg_daily_complete_to_date": [],
+            "moving_avg_daily_complete": [],
         }
 
-        task_stats = self.get_task_stats(since)
+        task_stats = self.get_task_stats(since, moving_average_days=moving_average_days)
         for key, val in task_stats["cumulative_flow"].items():
             result["dates"].append(timestamp_to_date(key))
             result["incomplete"].append(val["cumulative_incomplete"])
             result["complete"].append(val["cumulative_complete"])
-            result["avg_daily_complete"].append(val["avg_daily_complete"])
+            result["avg_daily_complete_to_date"].append(val["avg_daily_complete_to_date"])
+            result["moving_avg_daily_complete"].append(val["moving_avg_daily_complete"])
 
         return result
 
