@@ -7,7 +7,7 @@
 
 ## Task reviews
 
-Use `agent_scripts/weekly_review.py` for a review over a date window. Put a new review script in `agent_scripts/`, not in the repository root, and take shared helpers from `agent_scripts._client`.
+Use `agent_scripts/weekly_review.py` for a review over a date window. Put a new review script in `agent_scripts/`, not in the repository root, and take shared helpers from `agent_scripts._common`.
 
 Run a script as a module from the repository root, so that `amazing` resolves:
 

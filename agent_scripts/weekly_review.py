@@ -8,9 +8,9 @@ Example:
 """
 
 import argparse
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
-from agent_scripts._client import get_client, star, to_day
+from agent_scripts._common import get_client, star, to_day
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,6 +21,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--plan-through", help="Last day of the forward plan. Omit to report every future day.")
     parser.add_argument("--match", nargs="*", default=[], help="Only report open tasks whose title holds one of these words")
     return parser.parse_args()
+
+
+def scheduled_rows(tasks: Sequence, keep: Callable[[str], bool]) -> list[tuple[str, str, str]]:
+    """Rows of (scheduled day, priority, title) for tasks whose day keep() accepts."""
+    rows = []
+    for task in tasks:
+        doc = task.data["doc"]
+        day = doc.get("day")
+        if day and keep(day):
+            rows.append((day, star(doc), task.title))
+    return rows
 
 
 def section(title: str, rows: Sequence[tuple[str, ...]]) -> None:
@@ -56,24 +67,16 @@ def main() -> None:
     section(f"COMPLETED {args.start} .. {args.end}", completed)
     print(f"  (non-recurring: {sum(1 for row in completed if row[2].strip() == '')})")
 
-    slipped = [
-        (doc["day"], star(doc), task.title)
-        for task in open_tasks
-        for doc in [task.data["doc"]]
-        if doc.get("day") and slip_from <= doc["day"] <= args.end
-    ]
+    slipped = scheduled_rows(open_tasks, lambda day: slip_from <= day <= args.end)
     section(f"OPEN, scheduled {slip_from} .. {args.end} (slipping)", slipped)
 
-    planned = [
-        (doc["day"], star(doc), task.title)
-        for task in open_tasks
-        for doc in [task.data["doc"]]
-        if doc.get("day") and doc["day"] > args.end and (args.plan_through is None or doc["day"] <= args.plan_through)
-    ]
+    planned = scheduled_rows(open_tasks, lambda day: day > args.end and (args.plan_through is None or day <= args.plan_through))
     section("OPEN, scheduled after the window (the plan)", planned)
 
     unscheduled_p1 = [
-        (star(doc), task.title) for task in open_tasks for doc in [task.data["doc"]] if doc.get("isStarred") == 3 and not doc.get("day")
+        (star(task.data["doc"]), task.title)
+        for task in open_tasks
+        if task.data["doc"].get("isStarred") == 3 and not task.data["doc"].get("day")
     ]
     section("UNSCHEDULED P1 backlog", unscheduled_p1)
 

@@ -1,28 +1,28 @@
-"""Check that the Cloudant credentials in .env work, and show a few tasks.
+"""Check that the credentials in .env reach the database.
+
+Two small requests, so a bad credential fails fast. Use probe_schema.py when
+the question is about the task documents themselves; this one deliberately
+does not read them.
 
 Example:
-    python -m agent_scripts.check_connection
+    uv run python -m agent_scripts.check_connection
 """
 
 import argparse
 
-from agent_scripts._client import get_client
+from agent_scripts._common import db_name, get_client
 
 
 def main() -> None:
     argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
 
     client = get_client()
-    info = client.server_information()
-    print(f"server: {info.get('couchdb')} (version {info.get('version')})")
 
-    tasks = client.get_all_tasks()
-    done = sum(1 for t in tasks if t.done)
-    print(f"tasks: {len(tasks)} total, {done} done, {len(tasks) - done} open")
+    server = client.server_information()
+    print(f"server: {server.get('couchdb')} (version {server.get('version')})")
 
-    print("\nfirst five by title:")
-    for task in sorted(tasks, key=lambda t: t.title)[:5]:
-        print(f"  {task.title[:100]}")
+    database = client.get_db_info()
+    print(f"database {db_name()}: {database.get('doc_count')} documents, {database.get('doc_del_count')} deleted")
 
 
 if __name__ == "__main__":

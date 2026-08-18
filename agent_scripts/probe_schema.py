@@ -10,7 +10,7 @@ Example:
 import argparse
 import json
 
-from agent_scripts._client import get_client
+from agent_scripts._common import get_client
 
 SKIP_FIELDS = ("note",)
 

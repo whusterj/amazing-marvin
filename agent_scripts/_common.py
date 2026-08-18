@@ -1,15 +1,16 @@
-"""Shared Cloudant connection for the scripts in this folder.
+"""Shared connection and formatting for the scripts in this folder.
 
 AmazingCloudAntClient.client calls CloudantV1.new_instance(), which reads the
 IBM SDK's own environment variable names. These scripts build the client from
 the CLOUDANT_* names in .env instead, so one helper replaces the copy of this
 code that every script used to carry.
+
+Importing amazing.main reads .env, so nothing here needs to load it again.
 """
 
 import datetime as dt
 import os
 
-from dotenv import load_dotenv
 from ibm_cloud_sdk_core.authenticators import BasicAuthenticator
 from ibmcloudant.cloudant_v1 import CloudantV1
 
@@ -31,7 +32,6 @@ class EnvAuthClient(AmazingCloudAntClient):
 
 def get_client() -> EnvAuthClient:
     """Build a client from .env. Raises KeyError when a variable is absent."""
-    load_dotenv()
     auth = BasicAuthenticator(username=os.environ["CLOUDANT_USERNAME"], password=os.environ["CLOUDANT_PASSWORD"])
     service = CloudantV1(authenticator=auth)
     service.service_url = os.environ["CLOUDANT_URL"]
@@ -44,7 +44,6 @@ def get_service() -> CloudantV1:
 
 
 def db_name() -> str:
-    load_dotenv()
     return os.environ["CLOUDANT_SYNC_DB"]
 
 
