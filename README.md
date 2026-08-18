@@ -12,19 +12,17 @@ My personal scripts for the Amazing Marvin task management system. Will use the 
 
 ## SETUP
 
-The scripts run on **Python 3.12**. Older versions may not satisfy the requirements.
-
-Create a local virtual environment (venv):
+The project uses [uv](https://docs.astral.sh/uv/). Install it once, then let it do the rest:
 
 ```bash
-python -m venv /venv
+uv sync
 ```
 
-Activate the environment and install requirements from `requirements.txt`:
+That reads `pyproject.toml`, installs the exact versions in `uv.lock`, and fetches Python 3.12 if you do not have it. There is no virtual environment to activate. Put `uv run` in front of a command to run it in the project environment:
 
 ```bash
-source venv/bin/activate
-python -m pip install -r requirements.txt
+uv run pytest
+uv run jupyter notebook amazing/stats.ipynb
 ```
 
 Copy the `.env.example` file:
@@ -34,3 +32,5 @@ cp .env.example .env
 ```
 
 Get Amazing Marvin credentials from [here](https://app.amazingmarvin.com/pre?api), and plug them into the `.env` file.
+
+To add a package, use `uv add <package>`. To add a development tool, use `uv add --dev <package>`. Both write `pyproject.toml` and `uv.lock` together, so commit the two files as one change.
