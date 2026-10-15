@@ -7,7 +7,7 @@
 
 ## Task reviews
 
-**Three scripts already cover this work. Reuse one before you write anything.** Run any of them with `--help` for its full options.
+**Four scripts already cover this work. Reuse one before you write anything.** Run any of them with `--help` for its full options.
 
 | Need | Command |
 |---|---|
@@ -16,11 +16,13 @@
 | Widen the slip window or the forward plan | add `--slip-from YYYY-MM-DD` or `--plan-through YYYY-MM-DD` |
 | Confirm the credentials reach the database | `uv run python -m agent_scripts.check_connection` |
 | Learn whether a task field is always set | `uv run python -m agent_scripts.probe_schema --state done` |
+| List open research-link tasks | `uv run python -m agent_scripts.research_queue list` |
+| Mark processed research tasks done (**writes**) | `uv run python -m agent_scripts.research_queue done ID ... --dry-run`, then without `--dry-run` |
 
 Four rules:
 
 - Run every script as a module from the repository root, or `amazing` will not resolve.
-- Add an option to one of the three before you add a file. A new script needs a job none of them does.
+- Add an option to one of the four before you add a file. A new script needs a job none of them does.
 - Take the connection and the formatting from `agent_scripts._common`. Never rebuild the Cloudant client.
 - Do not write a tool to recover a deleted document. `agent_scripts/README.md` records why that cannot work.
 

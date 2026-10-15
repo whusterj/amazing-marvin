@@ -1,6 +1,6 @@
 # agent_scripts
 
-> **Every file in this folder is AI-written and has not been reviewed by a human.** Treat it as a working draft, not as tested code. Every script reads a live personal database, and none of them writes to it. Read a script before you run it.
+> **Every file in this folder is AI-written and has not been reviewed by a human.** Treat it as a working draft, not as tested code. Every script reads a live personal database. Only `research_queue.py done` writes to it, and only to mark a task done through the Marvin API. Read a script before you run it.
 
 These are ad hoc tools for reviewing tasks in [Amazing Marvin](https://amazingmarvin.com/) through its Cloudant/CouchDB sync database. They exist because a question came up once and a script answered it. The code in `amazing/` is the tested part of this repository; nothing here is covered by the test suite.
 
@@ -19,12 +19,13 @@ uv run python -m agent_scripts.weekly_review --start 2026-01-01 --end 2026-01-07
 | `weekly_review.py` | Reports tasks completed in a date window, open tasks that slipped, the forward plan, and the unscheduled P1 backlog. |
 | `check_connection.py` | Confirms the credentials in `.env` reach the database. Two requests, so it fails fast; it reads no tasks. |
 | `probe_schema.py` | Reports which fields task documents carry and how often, so a script can learn whether a field is always present. |
+| `research_queue.py` | Lists open research-link tasks (`Save:`, `Read:`, `Watch:`, `Listen:`, `Research:`) and marks processed ones done via the Marvin API `/markDone`. The only script that writes. `done` re-checks every ID first and refuses the whole batch if any is missing, already done, or not a research task. Use `--dry-run` first. |
 
 `_common.py` holds the shared connection and the priority and date formatting. Every script used to carry its own copy of that code.
 
 ## Setup
 
-These scripts read the same `.env` as the rest of the repository. See the root `README.md`. They need `CLOUDANT_URL`, `CLOUDANT_USERNAME`, `CLOUDANT_PASSWORD`, and `CLOUDANT_SYNC_DB`.
+These scripts read the same `.env` as the rest of the repository. See the root `README.md`. They need `CLOUDANT_URL`, `CLOUDANT_USERNAME`, `CLOUDANT_PASSWORD`, and `CLOUDANT_SYNC_DB`. `research_queue.py done` also needs `API_TOKEN`.
 
 ## Known gaps
 
